@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -97,6 +98,22 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
+	var env []corev1.EnvVar
+	for k, v := range instance.Spec.Env {
+		env = append(env, corev1.EnvVar{
+			Name:  k,
+			Value: v,
+		})
+	}
+
+	var resources = corev1.ResourceList{}
+	if instance.Spec.CPU != "" {
+		resources["cpu"] = resource.MustParse(instance.Spec.CPU)
+	}
+	if instance.Spec.Memory != "" {
+		resources["memory"] = resource.MustParse(instance.Spec.Memory)
+	}
+
 	// TODO(user): Change this to be the object type created by your controller
 	// Define the desired Deployment object
 	deploy := &appsv1.Deployment{
@@ -113,8 +130,14 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "nginx",
-							Image: "nginx",
+							Name:    instance.Name,
+							Image:   instance.Spec.Image,
+							Env:     env,
+							Command: []string{"sh", "-c", "env; sleep 4600"},
+							Resources: corev1.ResourceRequirements{
+								Limits:   resources,
+								Requests: resources,
+							},
 						},
 					},
 				},

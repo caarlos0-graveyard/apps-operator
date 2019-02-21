@@ -5,5 +5,8 @@ metadata:
     controller-tools.k8s.io: "1.0"
   name: app-sample
 spec:
-  # Add fields here
-  foo: bar
+  image: ubuntu
+  env:
+    FOO: bar
+  cpu: 10m
+  memory: 100Mi

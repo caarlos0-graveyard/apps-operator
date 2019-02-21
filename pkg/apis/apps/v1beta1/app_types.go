@@ -11,6 +11,10 @@ import (
 type AppSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Image  string            `json:"image"`
+	CPU    string            `json:"cpu"`
+	Memory string            `json:"memory"`
+	Env    map[string]string `json:"env"`
 }
 
 // AppStatus defines the observed state of App
